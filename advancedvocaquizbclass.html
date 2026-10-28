@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reading Booster Voca Quiz (31번~40번)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;600;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        jua: ['Jua', 'sans-serif'],
+                        sans: ['Noto Sans KR', 'sans-serif']
+                    },
+                    colors: {
+                        brandYellow: '#FFD166',
+                        brandPink: '#EF476F',
+                        brandBlue: '#118AB2',
+                        brandGreen: '#06D6A0',
+                        brandPurple: '#8338EC'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #a8ff78 0%, #78ffd6 100%);
+            min-height: 100vh;
+        }
+        .font-jua {
+            font-family: 'Jua', sans-serif;
+        }
+        .card-bounce {
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .card-bounce:hover {
+            transform: translateY(-6px) scale(1.02);
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 99%, #FECFEF 100%);
+        }
+        .game-gradient {
+            background: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%);
+        }
+        /* Timer Animation */
+        @keyframes timer-shrink {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+        .timer-bar {
+            animation-name: timer-shrink;
+            animation-timing-function: linear;
+            animation-fill-mode: forwards;
+        }
+        /* Floating animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(3deg); }
+        }
+        .animate-float {
+            animation: float 4s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="text-slate-800 flex flex-col justify-between min-h-screen">
+
+    <!-- Top Navigation Header -->
+    <header class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-white/40 shadow-sm px-4 py-3">
+        <div class="max-w-5xl mx-auto flex justify-between items-center">
+            <button onclick="showScreen('home')" class="flex items-center gap-2 text-2xl font-jua text-brandPink hover:scale-105 transition-transform">
+                <i class="fa-solid fa-graduation-cap text-3xl text-brandPurple"></i>
+                <span>Voca Quiz Masters</span>
+            </button>
+            <div class="flex items-center gap-3">
+                <button id="bgmToggleBtn" onclick="toggleBGM()" class="bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-bold px-3 py-1.5 rounded-full text-sm shadow transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-music"></i> <span id="bgmStateText">BGM ON</span>
+                </button>
+                <button onclick="showTeacherDashboard()" class="bg-brandPurple hover:bg-purple-700 text-white font-bold px-4 py-1.5 rounded-full text-sm shadow transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-chalkboard-user"></i> 교사 대시보드
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-4xl mx-auto w-full p-4 flex-grow flex items-center justify-center">
+
+        <!-- 1. HOME SCREEN (지문 선택 메뉴) -->
+        <div id="homeScreen" class="w-full space-y-6 my-auto">
+            <div class="text-center space-y-2 bg-white/70 backdrop-blur-md p-6 rounded-3xl shadow-xl border border-white">
+                <span class="bg-pink-100 text-pink-600 font-bold px-4 py-1 rounded-full text-sm">Reading Booster 고난도 01회</span>
+                <h1 class="text-3xl md:text-5xl font-jua text-slate-800">지문별 어휘 챌린지 (31번~40번)</h1>
+                <p class="text-slate-600 font-semibold">학습할 지문을 선택해 주세요. 각 지문당 10초 제한시간 10문제가 출제됩니다!</p>
+                
+                <!-- Student Name Input Bar -->
+                <div class="pt-2 flex justify-center items-center gap-2 max-w-sm mx-auto">
+                    <i class="fa-solid fa-user text-brandBlue text-xl"></i>
+                    <input type="text" id="studentNameInput" placeholder="학생 이름을 입력하세요" class="w-full px-4 py-2 rounded-xl border-2 border-brandBlue/40 focus:border-brandBlue focus:outline-none font-bold text-center shadow-inner" oninput="saveStudentName()">
+                </div>
+            </div>
+
+            <!-- Passage Grid Buttons (No spoiler titles, just 지문 31번 ~ 40번) -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                <!-- 31번 ~ 40번 Dynamic Generation in JS or static buttons -->
+                <script>
+                    for(let i=31; i<=40; i++){
+                        document.write(`
+                            <button onclick="startPassageQuiz(${i})" class="card-bounce bg-white p-5 rounded-2xl shadow-lg border-b-4 border-emerald-400 flex flex-col items-center justify-center gap-2 hover:bg-emerald-50 group">
+                                <span class="bg-emerald-100 text-emerald-700 font-black px-3 py-1 rounded-full text-xs group-hover:bg-emerald-500 group-hover:text-white transition-colors">START</span>
+                                <span class="text-2xl font-jua text-slate-800">지문 ${i}번</span>
+                                <div class="flex items-center text-xs text-slate-400 gap-1 font-semibold">
+                                    <i class="fa-solid fa-bolt text-amber-400"></i> 10 문제
+                                </div>
+                            </button>
+                        `);
+                    }
+                </script>
+            </div>
+        </div>
+
+        <!-- 2. QUIZ GAME SCREEN -->
+        <div id="quizScreen" class="hidden w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden border-4 border-white flex flex-col relative">
+            <!-- Game Top Status Bar -->
+            <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <span id="passageBadge" class="bg-brandPink font-jua px-3 py-1 rounded-full text-lg">지문 31번</span>
+                    <span id="quizProgress" class="font-bold text-slate-300">Q. 1 / 10</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <!-- Combo Counter -->
+                    <div class="flex items-center gap-1 font-jua text-amber-400 text-xl">
+                        <i class="fa-solid fa-fire animate-bounce"></i>
+                        <span id="comboText">0 COMBO</span>
+                    </div>
+                    <!-- Score Counter -->
+                    <div class="bg-slate-800 px-4 py-1.5 rounded-xl font-jua text-2xl text-emerald-400 shadow-inner">
+                        <span id="scoreText">0</span> <span class="text-sm text-slate-400">점</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timer Bar Indicator -->
+            <div class="w-full bg-slate-200 h-3 relative overflow-hidden">
+                <div id="timerBar" class="h-full bg-gradient-to-r from-amber-400 via-rose-500 to-red-600 w-full"></div>
+            </div>
+
+            <!-- Question & Word Display Area -->
+            <div class="p-6 md:p-8 flex-grow flex flex-col items-center justify-center text-center bg-gradient-to-b from-sky-50 to-white relative">
+                
+                <span id="questionTypeTag" class="text-xs font-bold px-3 py-1 bg-brandBlue/10 text-brandBlue rounded-full mb-3">어휘 뜻 맞히기</span>
+                
+                <!-- Word / Meaning Main Display -->
+                <div class="flex items-center justify-center gap-3 my-2">
+                    <h2 id="quizWord" class="text-3xl md:text-5xl font-extrabold text-slate-800 tracking-wide font-jua">infectious</h2>
+                    <button id="ttsBtn" onclick="speakCurrentWord()" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-600 p-3 rounded-full text-xl shadow transition-transform active:scale-95" title="발음 듣기">
+                        <i class="fa-solid fa-volume-high"></i>
+                    </button>
+                </div>
+
+                <p id="quizPrompt" class="text-slate-500 font-semibold text-sm md:text-base mt-2">다음 어휘의 올바른 한국어 뜻을 선택하세요.</p>
+            </div>
+
+            <!-- Answer Options (4 Multiple Choice Buttons) -->
+            <div class="p-6 bg-slate-50 grid grid-cols-1 md:grid-cols-2 gap-3.5 border-t border-slate-100">
+                <button onclick="submitAnswer(0)" id="opt0" class="card-bounce bg-white hover:bg-sky-50 border-2 border-slate-200 hover:border-brandBlue p-4 rounded-2xl text-left font-bold text-slate-700 text-lg flex items-center gap-3 shadow-sm transition-all">
+                    <span class="w-8 h-8 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center font-jua text-base border">1</span>
+                    <span class="option-text flex-grow">선택지 1</span>
+                </button>
+                <button onclick="submitAnswer(1)" id="opt1" class="card-bounce bg-white hover:bg-sky-50 border-2 border-slate-200 hover:border-brandBlue p-4 rounded-2xl text-left font-bold text-slate-700 text-lg flex items-center gap-3 shadow-sm transition-all">
+                    <span class="w-8 h-8 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center font-jua text-base border">2</span>
+                    <span class="option-text flex-grow">선택지 2</span>
+                </button>
+                <button onclick="submitAnswer(2)" id="opt2" class="card-bounce bg-white hover:bg-sky-50 border-2 border-slate-200 hover:border-brandBlue p-4 rounded-2xl text-left font-bold text-slate-700 text-lg flex items-center gap-3 shadow-sm transition-all">
+                    <span class="w-8 h-8 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center font-jua text-base border">3</span>
+                    <span class="option-text flex-grow">선택지 3</span>
+                </button>
+                <button onclick="submitAnswer(3)" id="opt3" class="card-bounce bg-white hover:bg-sky-50 border-2 border-slate-200 hover:border-brandBlue p-4 rounded-2xl text-left font-bold text-slate-700 text-lg flex items-center gap-3 shadow-sm transition-all">
+                    <span class="w-8 h-8 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center font-jua text-base border">4</span>
+                    <span class="option-text flex-grow">선택지 4</span>
+                </button>
+            </div>
+
+            <!-- Instant Feedback Overlay Banner -->
+            <div id="feedbackBanner" class="hidden absolute inset-0 bg-slate-900/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center text-white z-20">
+                <div id="feedbackIcon" class="text-6xl mb-2"></div>
+                <h3 id="feedbackTitle" class="text-3xl font-jua mb-2">정답입니다!</h3>
+                <p id="feedbackDesc" class="text-slate-200 text-lg mb-6 max-w-md">infectious : 감염성의, 전염병을 일으키는</p>
+                <button onclick="nextQuestion()" class="bg-brandGreen hover:bg-emerald-500 text-slate-900 font-jua text-xl px-8 py-3 rounded-2xl shadow-lg transition-transform hover:scale-105">
+                    다음 문제로 <i class="fa-solid fa-arrow-right ml-1"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- 3. QUIZ RESULT SCREEN -->
+        <div id="resultScreen" class="hidden w-full max-w-xl bg-white rounded-3xl shadow-2xl p-8 text-center border-4 border-white my-auto">
+            <div class="inline-block p-4 bg-yellow-100 text-yellow-500 rounded-full text-5xl mb-4 animate-bounce">
+                <i class="fa-solid fa-trophy"></i>
+            </div>
+            <h2 class="text-3xl font-jua text-slate-800 mb-1">퀴즈 완료! 수고하셨습니다 🎉</h2>
+            <p id="resultPassageTitle" class="text-slate-500 font-bold mb-4">지문 31번 어휘 테스트 결과</p>
+
+            <!-- Final Score Summary Card -->
+            <div class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-2xl p-6 shadow-lg mb-6 space-y-2">
+                <div class="text-sm font-semibold opacity-80">최종 점수</div>
+                <div id="finalScore" class="text-5xl font-jua text-yellow-300">100 / 100 점</div>
+                <div class="flex justify-center gap-4 text-sm pt-2 font-bold text-indigo-100">
+                    <div>맞힌 문제: <span id="correctCountText" class="text-emerald-300">10</span> / 10</div>
+                    <div>최대 콤보: <span id="maxComboText" class="text-amber-300">10</span> COMBO</div>
+                </div>
+            </div>
+
+            <!-- Action Buttons: Google Classroom Share & Retrain -->
+            <div class="space-y-3">
+                <button onclick="submitToGoogleClassroom()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-jua text-xl py-3.5 px-6 rounded-2xl shadow-md transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-square-share-nodes"></i> 구글 클래스룸에 결과 제출 / 공유
+                </button>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="restartCurrentQuiz()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl transition-all">
+                        <i class="fa-solid fa-rotate-right"></i> 다시 풀기
+                    </button>
+                    <button onclick="showScreen('home')" class="bg-brandBlue hover:bg-sky-600 text-white font-bold py-3 rounded-xl transition-all">
+                        <i class="fa-solid fa-list"></i> 지문 목록으로
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. TEACHER DASHBOARD SCREEN -->
+        <div id="dashboardScreen" class="hidden w-full bg-white rounded-3xl shadow-2xl p-6 md:p-8 border-4 border-white">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b pb-4">
+                <div>
+                    <h2 class="text-3xl font-jua text-brandPurple flex items-center gap-2">
+                        <i class="fa-solid fa-chalkboard-user"></i> 교사 학습관리 대시보드
+                    </h2>
+                    <p class="text-slate-500 text-sm mt-1">학생들의 지문별 어휘 테스트 참여도 및 성적 제출 현황입니다.</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="exportCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1 shadow">
+                        <i class="fa-solid fa-file-excel"></i> CSV 내보내기
+                    </button>
+                    <button onclick="clearRecords()" class="bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1 shadow">
+                        <i class="fa-solid fa-trash"></i> 기록 초기화
+                    </button>
+                    <button onclick="showScreen('home')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold px-3 py-2 rounded-xl">
+                        닫기
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Overview Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div class="bg-purple-50 border border-purple-200 rounded-2xl p-4 text-center">
+                    <span class="text-xs text-purple-600 font-bold">총 제출 건수</span>
+                    <div id="dashTotalSubmissions" class="text-2xl font-jua text-purple-800 mt-1">0건</div>
+                </div>
+                <div class="bg-blue-50 border border-blue-200 rounded-2xl p-4 text-center">
+                    <span class="text-xs text-blue-600 font-bold">평균 점수</span>
+                    <div id="dashAvgScore" class="text-2xl font-jua text-blue-800 mt-1">0점</div>
+                </div>
+                <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-center">
+                    <span class="text-xs text-emerald-600 font-bold">참여 학생 수</span>
+                    <div id="dashStudentCount" class="text-2xl font-jua text-emerald-800 mt-1">0명</div>
+                </div>
+                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-center">
+                    <span class="text-xs text-amber-600 font-bold">가장 참여 많은 지문</span>
+                    <div id="dashPopularPassage" class="text-xl font-jua text-amber-800 mt-1">-</div>
+                </div>
+            </div>
+
+            <!-- Submissions History Table -->
+            <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-inner">
+                <table class="w-full text-left text-sm text-slate-600">
+                    <thead class="bg-slate-100 text-slate-800 font-jua text-base border-b">
+                        <tr>
+                            <th class="p-3">일시</th>
+                            <th class="p-3">학생 이름</th>
+                            <th class="p-3">지문 번호</th>
+                            <th class="p-3">점수</th>
+                            <th class="p-3">정답 수</th>
+                            <th class="p-3">최대 콤보</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dashTableBody">
+                        <!-- Dynamic Records Insertion -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center py-4 text-xs text-slate-500 font-semibold bg-white/40 border-t border-white/50">
+        Reading Booster 영어독해 모의고사 고난도 01회 (31~40번 지문 어휘 학습) &copy; 2026 Interactive Voca Game
+    </footer>
+
+    <!-- SCRIPT SECTION -->
+    <script>
+        // ----------------------------------------------------
+        // VOCABULARY DATABASE (Passages 31 to 40)
+        // ----------------------------------------------------
+        const vocaDB = {
+            31: [
+                { word: "infectious", mean: "감염성의, 전염병을 일으키는", distractors: ["독성의", "치명적인", "유전적인"] },
+                { word: "pathogen", mean: "병원균, 병원체", distractors: ["백신", "항체", "유기체"] },
+                { word: "disgust", mean: "혐오감, 메스꺼움", distractors: ["동정심", "경외감", "호기심"] },
+                { word: "contaminated", mean: "오염된", distractors: ["정화된", "멸균된", "보호된"] },
+                { word: "exposure", mean: "노출, 접촉", distractors: ["격리", "차단", "은폐"] },
+                { word: "overgeneralize", mean: "과잉일반화하다", distractors: ["구체화하다", "과소평가하다", "분석하다"] }
+            ],
+            32: [
+                { word: "abusive", mean: "학대하는, 남용하는", distractors: ["친절한", "협력적인", "존경스러운"] },
+                { word: "falsely", mean: "잘못되게, 거짓으로", distractors: ["진실되게", "정확히", "솔직히"] },
+                { word: "manipulate", mean: "조종하다, 조작하다", distractors: ["방관하다", "순응하다", "격려하다"] },
+                { word: "self-destruct", mean: "자멸하다, 스스로 파괴되다", distractors: ["번창하다", "회복하다", "성장하다"] },
+                { word: "house of cards", mean: "위태로운 구조, 사상누각", distractors: ["견고한 성", "안전지대", "철통 방어"] }
+            ],
+            33: [
+                { word: "acquisition", mean: "획득, 습득, 고객 확보", distractors: ["상실", "포기", "배출"] },
+                { word: "profitability", mean: "수익성, 채산성", distractors: ["손실", "비용", "투자"] },
+                { word: "advocate", mean: "옹호하다, 지지하다", distractors: ["비판하다", "반대하다", "무시하다"] },
+                { word: "nurture", mean: "육성하다, 보살피다", distractors: ["방치하다", "억제하다", "방해하다"] },
+                { word: "sustainable", mean: "지속 가능한", distractors: ["일시적인", "불안정한", "단기적인"] }
+            ],
+            34: [
+                { word: "convention", mean: "관습, 관례, 전통", distractors: ["혁신", "변혁", "우연"] },
+                { word: "cartographer", mean: "지도 제작자", distractors: ["항해사", "천문학자", "지리학자"] },
+                { word: "universal", mean: "보편적인, 일반적인", distractors: ["특수한", "국소적인", "희귀한"] },
+                { word: "specified", mean: "명시된, 지정된", distractors: ["모호한", "생략된", "임의의"] },
+                { word: "abode", mean: "거주지, 집", distractors: ["일터", "여행지", "피난처"] }
+            ],
+            35: [
+                { word: "phobia", mean: "공포증, 극심한 두려움", distractors: ["애착", "선호", "중독"] },
+                { word: "stimulus", mean: "자극, 촉진제", distractors: ["반응", "억제제", "결과"] },
+                { word: "provokes", mean: "유발하다, 도발하다", distractors: ["진정시키다", "완화하다", "수용하다"] },
+                { word: "impairment", mean: "장애, 손상", distractors: ["향상", "회복", "발달"] },
+                { word: "excessive", mean: "과도한, 지나친", distractors: ["적절한", "부족한", "절제된"] }
+            ],
+            36: [
+                { word: "immersed", mean: "몰입한, 푹 빠진", distractors: ["소외된", "무관심한", "분산된"] },
+                { word: "reinforce", mean: "강화하다, 보강하다", distractors: ["약화시키다", "거부하다", "해체하다"] },
+                { word: "interplay", mean: "상호작용", distractors: ["단독작용", "불화", "단절"] },
+                { word: "sociocultural", mean: "사회문화적인", distractors: ["생물학적인", "개인적인", "물리적인"] },
+                { word: "context", mean: "맥락, 배경", distractors: ["결과", "오류", "단편"] }
+            ],
+            37: [
+                { word: "depicted", mean: "묘사된, 그려진", distractors: ["감춰진", "파괴된", "왜곡된"] },
+                { word: "prey", mean: "먹이, 희생양", distractors: ["포식자", "사냥꾼", "동료"] },
+                { word: "unexpectedly", mean: "뜻밖에, 갑자기", distractors: ["예상대로", "의도적으로", "정기적으로"] },
+                { word: "prehistoric", mean: "선사 시대의", distractors: ["현대의", "미래의", "중세의"] },
+                { word: "spell", mean: "주문, 주술", distractors: ["과학", "논리", "법칙"] }
+            ],
+            38: [
+                { word: "polymath", mean: "박식가, 다재다능한 사람", distractors: ["전문가", "초보자", "기술자"] },
+                { word: "specialize", mean: "전공하다, 전문화하다", distractors: ["일반화하다", "포기하다", "통합하다"] },
+                { word: "setting", mean: "환경, 설정, 배경", distractors: ["원인", "결과", "본질"] },
+                { word: "restriction", mean: "제한, 구속", distractors: ["자유", "허용", "확장"] },
+                { word: "cognitive", mean: "인지적인, 인식의", distractors: ["신체적인", "감정적인", "본능적인"] }
+            ],
+            39: [
+                { word: "informality", mean: "격식 없음, 편안함", distractors: ["격식", "엄격함", "예의범절"] },
+                { word: "intimacy", mean: "친밀함, 적막함", distractors: ["소원함", "경계심", "적개심"] },
+                { word: "shortened", mean: "축소된, 단축된", distractors: ["연장된", "확장된", "복제된"] },
+                { word: "established", mean: "확립된, 안착된", distractors: ["불안정한", "폐지된", "유동적인"] },
+                { word: "equality", mean: "평등, 균등", distractors: ["차별", "불평등", "계급"] }
+            ],
+            40: [
+                { word: "occupational", mean: "직업상의, 업무의", distractors: ["학업의", "취미의", "가정의"] },
+                { word: "authoritarian", mean: "권위주의적인, 엄격한", distractors: ["민주적인", "자유로운", "수용적인"] },
+                { word: "obedience", mean: "복종, 순종", distractors: ["반항", "거부", "독립"] },
+                { word: "conforming", mean: "따르는, 부응하는", distractors: ["이탈하는", "거부하는", "변형하는"] },
+                { word: "autonomy", mean: "자율성, 자치", distractors: ["타율성", "의존성", "구속"] }
+            ]
+        };
+
+        // Rich Educational Feedbacks
+        const praiseMessages = [
+            "완벽합니다! 어휘력 상승 중! 🚀",
+            "정답입니다! 훌륭한 기억력이에요! 👏",
+            "명쾌합니다! 단어의 핵심 의미를 정확히 파악하셨군요! 🌟",
+            "대단해요! 콤보를 계속 이어가세요! 🔥",
+            "탁월합니다! 수능 대박 예감! 💯"
+        ];
+
+        // GAME STATE VARIABLES
+        let currentPassage = 31;
+        let quizQuestions = [];
+        let currentQuizIndex = 0;
+        let score = 0;
+        let combo = 0;
+        let maxCombo = 0;
+        let correctCount = 0;
+        let timerInterval = null;
+        let isAudioMuted = false;
+
+        // Audio Effects (Web Audio API Synthesizer)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let bgmOscillator = null;
+        let bgmGain = null;
+        let isBgmPlaying = false;
+
+        // Load Student Name on Startup
+        window.onload = function() {
+            const savedName = localStorage.getItem("vocaStudentName") || "";
+            document.getElementById("studentNameInput").value = savedName;
+        };
+
+        function saveStudentName() {
+            const name = document.getElementById("studentNameInput").value;
+            localStorage.setItem("vocaStudentName", name);
+        }
+
+        // Web Audio Effects
+        function playSoundEffect(type) {
+            if (isAudioMuted) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'correct') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                    osc.frequency.exponentialRampToValueAtTime(659.25, audioCtx.currentTime + 0.15); // E5
+                    osc.frequency.exponentialRampToValueAtTime(783.99, audioCtx.currentTime + 0.3); // G5
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.4);
+                } else if (type === 'wrong') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, audioCtx.currentTime); // A3
+                    osc.frequency.linearRampToValueAtTime(130.81, audioCtx.currentTime + 0.3); // C3
+                    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.35);
+                } else if (type === 'combo') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(1760, audioCtx.currentTime + 0.2);
+                    gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.25);
+                }
+            } catch(e) {}
+        }
+
+        // BGM Control
+        function toggleBGM() {
+            if (isBgmPlaying) {
+                stopBGM();
+                document.getElementById("bgmStateText").innerText = "BGM OFF";
+                document.getElementById("bgmToggleBtn").classList.replace("bg-yellow-400", "bg-slate-300");
+                isAudioMuted = true;
+            } else {
+                startBGM();
+                document.getElementById("bgmStateText").innerText = "BGM ON";
+                document.getElementById("bgmToggleBtn").classList.replace("bg-slate-300", "bg-yellow-400");
+                isAudioMuted = false;
+            }
+        }
+
+        function startBGM() {
+            try {
+                if (bgmOscillator) stopBGM();
+                bgmGain = audioCtx.createGain();
+                bgmGain.gain.setValueAtTime(0.03, audioCtx.currentTime);
+                bgmGain.connect(audioCtx.destination);
+
+                // Simple ambient background melody synth loop
+                bgmOscillator = audioCtx.createOscillator();
+                bgmOscillator.type = 'sine';
+                bgmOscillator.frequency.setValueAtTime(329.63, audioCtx.currentTime); // E4
+                bgmOscillator.connect(bgmGain);
+                bgmOscillator.start();
+                isBgmPlaying = true;
+            } catch(e){}
+        }
+
+        function stopBGM() {
+            if (bgmOscillator) {
+                try {
+                    bgmOscillator.stop();
+                    bgmOscillator.disconnect();
+                } catch(e){}
+                bgmOscillator = null;
+            }
+            isBgmPlaying = false;
+        }
+
+        // Web Speech API (TTS) for English Word Pronunciation
+        function speakWord(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel(); // Stop any previous speech
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US';
+                utterance.rate = 0.9;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function speakCurrentWord() {
+            const q = quizQuestions[currentQuizIndex];
+            if (q) {
+                speakWord(q.targetWord);
+            }
+        }
+
+        // Screen Switcher
+        function showScreen(screenId) {
+            document.getElementById("homeScreen").classList.add("hidden");
+            document.getElementById("quizScreen").classList.add("hidden");
+            document.getElementById("resultScreen").classList.add("hidden");
+            document.getElementById("dashboardScreen").classList.add("hidden");
+
+            if (screenId === 'home') {
+                document.getElementById("homeScreen").classList.remove("hidden");
+                clearInterval(timerInterval);
+            } else if (screenId === 'quiz') {
+                document.getElementById("quizScreen").classList.remove("hidden");
+            } else if (screenId === 'result') {
+                document.getElementById("resultScreen").classList.remove("hidden");
+            } else if (screenId === 'dashboard') {
+                document.getElementById("dashboardScreen").classList.remove("hidden");
+            }
+        }
+
+        // Generate 10 Questions for the selected passage
+        // 5 Word -> Meaning, 5 Meaning -> Word
+        function generateQuizSet(passageNum) {
+            const vocabList = vocaDB[passageNum];
+            let rawSet = [];
+
+            // Helper to get random distractors
+            function getRandomDistractors(correctItem, isWordToMean) {
+                let pool = [];
+                Object.keys(vocaDB).forEach(p => {
+                    vocaDB[p].forEach(v => {
+                        if (v.word !== correctItem.word) {
+                            pool.push(isWordToMean ? v.mean : v.word);
+                        }
+                    });
+                });
+                // Shuffle pool and take 3
+                pool.sort(() => 0.5 - Math.random());
+                return pool.slice(0, 3);
+            }
+
+            // Generate 5 Word -> Mean Questions
+            vocabList.forEach(item => {
+                const distractors = getRandomDistractors(item, true);
+                const options = [item.mean, ...distractors].sort(() => 0.5 - Math.random());
+                rawSet.push({
+                    type: "wordToMean",
+                    promptWord: item.word,
+                    targetWord: item.word,
+                    correctAnswer: item.mean,
+                    options: options,
+                    fullMeaning: `${item.word} : ${item.mean}`
+                });
+            });
+
+            // Generate 5 Mean -> Word Questions
+            vocabList.forEach(item => {
+                const distractors = getRandomDistractors(item, false);
+                const options = [item.word, ...distractors].sort(() => 0.5 - Math.random());
+                rawSet.push({
+                    type: "meanToWord",
+                    promptWord: item.mean,
+                    targetWord: item.word,
+                    correctAnswer: item.word,
+                    options: options,
+                    fullMeaning: `${item.word} : ${item.mean}`
+                });
+            });
+
+            // Shuffle all 10 questions
+            return rawSet.sort(() => 0.5 - Math.random());
+        }
+
+        // Start Quiz Game
+        function startPassageQuiz(passageNum) {
+            const studentName = document.getElementById("studentNameInput").value.trim();
+            if (!studentName) {
+                alert("학습 진행 및 교사 대시보드 기록을 위해 이름을 먼저 입력해주세요!");
+                document.getElementById("studentNameInput").focus();
+                return;
+            }
+
+            currentPassage = passageNum;
+            quizQuestions = generateQuizSet(passageNum);
+            currentQuizIndex = 0;
+            score = 0;
+            combo = 0;
+            maxCombo = 0;
+            correctCount = 0;
+
+            document.getElementById("passageBadge").innerText = `지문 ${passageNum}번`;
+            updateScoreDisplay();
+            showScreen('quiz');
+            loadQuestion();
+        }
+
+        function restartCurrentQuiz() {
+            startPassageQuiz(currentPassage);
+        }
+
+        // Load Current Question into UI
+        function loadQuestion() {
+            // Hide feedback overlay
+            document.getElementById("feedbackBanner").classList.add("hidden");
+
+            const q = quizQuestions[currentQuizIndex];
+            document.getElementById("quizProgress").innerText = `Q. ${currentQuizIndex + 1} / 10`;
+
+            if (q.type === 'wordToMean') {
+                document.getElementById("questionTypeTag").innerText = "어휘 뜻 맞히기";
+                document.getElementById("quizWord").innerText = q.promptWord;
+                document.getElementById("quizPrompt").innerText = "다음 영단어에 해당하는 올바른 한국어 뜻을 고르세요.";
+                document.getElementById("ttsBtn").classList.remove("hidden");
+                speakWord(q.promptWord); // Auto-pronounce word
+            } else {
+                document.getElementById("questionTypeTag").innerText = "뜻으로 영단어 맞히기";
+                document.getElementById("quizWord").innerText = q.promptWord;
+                document.getElementById("quizPrompt").innerText = "다음 한국어 뜻에 해당하는 올바른 영단어를 고르세요.";
+                document.getElementById("ttsBtn").classList.add("hidden");
+            }
+
+            // Render Options
+            for (let i = 0; i < 4; i++) {
+                const btn = document.getElementById(`opt${i}`);
+                btn.querySelector('.option-text').innerText = q.options[i];
+                btn.disabled = false;
+            }
+
+            // Reset and Start 10-second timer animation
+            startTimer();
+        }
+
+        // Timer Control (10 Seconds)
+        function startTimer() {
+            clearInterval(timerInterval);
+            const timerBar = document.getElementById("timerBar");
+            
+            // Reset CSS animation
+            timerBar.style.animation = 'none';
+            timerBar.offsetHeight; // trigger reflow
+            timerBar.style.animation = 'timer-shrink 10s linear forwards';
+
+            let timeLeft = 10;
+            timerInterval = setInterval(() => {
+                timeLeft -= 0.1;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    handleTimeOut();
+                }
+            }, 100);
+        }
+
+        function handleTimeOut() {
+            // Disable buttons
+            for (let i = 0; i < 4; i++) {
+                document.getElementById(`opt${i}`).disabled = true;
+            }
+            combo = 0;
+            updateScoreDisplay();
+            playSoundEffect('wrong');
+
+            const q = quizQuestions[currentQuizIndex];
+            showFeedback(false, `⏰ 시간 초과!\n정답: ${q.correctAnswer}\n(${q.fullMeaning})`);
+        }
+
+        // Answer Submission
+        function submitAnswer(selectedIndex) {
+            clearInterval(timerInterval);
+            // Disable all buttons to prevent double click
+            for (let i = 0; i < 4; i++) {
+                document.getElementById(`opt${i}`).disabled = true;
+            }
+
+            const q = quizQuestions[currentQuizIndex];
+            const chosen = q.options[selectedIndex];
+            const isCorrect = (chosen === q.correctAnswer);
+
+            if (isCorrect) {
+                combo++;
+                if (combo > maxCombo) maxCombo = combo;
+                correctCount++;
+                const comboBonus = combo > 1 ? combo * 10 : 0;
+                score += (100 + comboBonus); // 100 base score + combo bonus
+
+                playSoundEffect(combo > 2 ? 'combo' : 'correct');
+                updateScoreDisplay();
+
+                const randomPraise = praiseMessages[Math.floor(Math.random() * praiseMessages.length)];
+                showFeedback(true, `${randomPraise}\n${q.fullMeaning}`);
+            } else {
+                combo = 0;
+                updateScoreDisplay();
+                playSoundEffect('wrong');
+
+                showFeedback(false, `오답입니다.\n정답: ${q.correctAnswer}\n(${q.fullMeaning})`);
+            }
+        }
+
+        function updateScoreDisplay() {
+            document.getElementById("scoreText").innerText = score;
+            document.getElementById("comboText").innerText = `${combo} COMBO`;
+        }
+
+        function showFeedback(isCorrect, descText) {
+            const banner = document.getElementById("feedbackBanner");
+            const icon = document.getElementById("feedbackIcon");
+            const title = document.getElementById("feedbackTitle");
+            const desc = document.getElementById("feedbackDesc");
+
+            if (isCorrect) {
+                icon.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-400"></i>';
+                title.innerText = "정답입니다!";
+                title.className = "text-3xl font-jua mb-2 text-emerald-300";
+            } else {
+                icon.innerHTML = '<i class="fa-solid fa-circle-xmark text-rose-400"></i>';
+                title.innerText = "아쉽네요!";
+                title.className = "text-3xl font-jua mb-2 text-rose-300";
+            }
+
+            desc.innerText = descText;
+            banner.classList.remove("hidden");
+        }
+
+        function nextQuestion() {
+            currentQuizIndex++;
+            if (currentQuizIndex < quizQuestions.length) {
+                loadQuestion();
+            } else {
+                finishQuiz();
+            }
+        }
+
+        // Quiz Completion logic
+        function finishQuiz() {
+            clearInterval(timerInterval);
+            
+            // Trigger confetti effect
+            confetti({
+                particleCount: 120,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+
+            const studentName = document.getElementById("studentNameInput").value || "익명 학생";
+            document.getElementById("resultPassageTitle").innerText = `지문 ${currentPassage}번 어휘 테스트 결과 (${studentName} 학생)`;
+            document.getElementById("finalScore").innerText = `${score} 점`;
+            document.getElementById("correctCountText").innerText = correctCount;
+            document.getElementById("maxComboText").innerText = maxCombo;
+
+            // Save Result to LocalStorage for Teacher Dashboard
+            saveSubmissionRecord({
+                date: new Date().toLocaleString('ko-KR'),
+                student: studentName,
+                passage: `지문 ${currentPassage}번`,
+                score: score,
+                correctCount: correctCount,
+                maxCombo: maxCombo
+            });
+
+            showScreen('result');
+        }
+
+        // Google Classroom Integration
+        function submitToGoogleClassroom() {
+            const studentName = document.getElementById("studentNameInput").value || "익명 학생";
+            const shareTitle = `[어휘 퀴즈 결과] 지문 ${currentPassage}번 - ${studentName}`;
+            const shareBody = `지문 ${currentPassage}번 어휘 테스트 점수: ${score}점 (${correctCount}/10 문제 정답, 최대 ${maxCombo}콤보 달성!)`;
+
+            // Open Google Classroom Share Intent
+            const targetUrl = window.location.href;
+            const classroomShareUrl = `https://classroom.google.com/share?url=${encodeURIComponent(targetUrl)}&title=${encodeURIComponent(shareTitle + " : " + shareBody)}`;
+
+            window.open(classroomShareUrl, '_blank', 'width=650,height=550');
+        }
+
+        // ----------------------------------------------------
+        // TEACHER DASHBOARD LOGIC
+        // ----------------------------------------------------
+        function saveSubmissionRecord(record) {
+            let records = JSON.parse(localStorage.getItem("vocaQuizSubmissions") || "[]");
+            records.unshift(record); // Add to beginning
+            localStorage.setItem("vocaQuizSubmissions", JSON.stringify(records));
+        }
+
+        function showTeacherDashboard() {
+            renderDashboardData();
+            showScreen('dashboard');
+        }
+
+        function renderDashboardData() {
+            const records = JSON.parse(localStorage.getItem("vocaQuizSubmissions") || "[]");
+            const tbody = document.getElementById("dashTableBody");
+            tbody.innerHTML = "";
+
+            if (records.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400">제출된 학습 기록이 아직 없습니다.</td></tr>`;
+                document.getElementById("dashTotalSubmissions").innerText = "0건";
+                document.getElementById("dashAvgScore").innerText = "0점";
+                document.getElementById("dashStudentCount").innerText = "0명";
+                document.getElementById("dashPopularPassage").innerText = "-";
+                return;
+            }
+
+            let totalScore = 0;
+            const studentsSet = new Set();
+            const passageCounts = {};
+
+            records.forEach(r => {
+                totalScore += r.score;
+                studentsSet.add(r.student);
+                passageCounts[r.passage] = (passageCounts[r.passage] || 0) + 1;
+
+                const tr = document.createElement("tr");
+                tr.className = "border-b hover:bg-slate-50";
+                tr.innerHTML = `
+                    <td class="p-3 text-xs text-slate-400">${r.date}</td>
+                    <td class="p-3 font-bold text-slate-800">${r.student}</td>
+                    <td class="p-3"><span class="bg-indigo-100 text-indigo-700 px-2.5 py-1 rounded-full text-xs font-bold">${r.passage}</span></td>
+                    <td class="p-3 font-jua text-emerald-600 text-base">${r.score}점</td>
+                    <td class="p-3">${r.correctCount} / 10</td>
+                    <td class="p-3 text-amber-600 font-bold">${r.maxCombo} C</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Summary calculation
+            const avgScore = Math.round(totalScore / records.length);
+            let topPassage = "-";
+            let maxPCount = 0;
+            Object.keys(passageCounts).forEach(p => {
+                if (passageCounts[p] > maxPCount) {
+                    maxPCount = passageCounts[p];
+                    topPassage = p;
+                }
+            });
+
+            document.getElementById("dashTotalSubmissions").innerText = `${records.length}건`;
+            document.getElementById("dashAvgScore").innerText = `${avgScore}점`;
+            document.getElementById("dashStudentCount").innerText = `${studentsSet.size}명`;
+            document.getElementById("dashPopularPassage").innerText = topPassage;
+        }
+
+        function clearRecords() {
+            if (confirm("정말로 모든 제출 기록을 초기화하시겠습니까?")) {
+                localStorage.removeItem("vocaQuizSubmissions");
+                renderDashboardData();
+            }
+        }
+
+        function exportCSV() {
+            const records = JSON.parse(localStorage.getItem("vocaQuizSubmissions") || "[]");
+            if (records.length === 0) {
+                alert("내보낼 기록이 없습니다.");
+                return;
+            }
+
+            let csv = "\uFEFF일시,학생이름,지문,점수,정답수,최대콤보\n";
+            records.forEach(r => {
+                csv += `"${r.date}","${r.student}","${r.passage}",${r.score},${r.correctCount},${r.maxCombo}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `어휘퀴즈_학습기록_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
